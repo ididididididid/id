@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="apple-mobile-web-app-status-bar" content="#021430">
+    <meta name="theme-color" content="#021430">
+    <title>ID</title>
+  </head>
+  <body>
+    <main>
+      <p>Upload dit kørekort billede! (Skal være sort og hvidt)</p>
+      <input type="file" id="fileInput">
+      <p>Skriv dit fulde navn</p>
+      <input type="text" id="name">
+      <p>Skriv en føddselsdato (eks: 05.04.2005)</p>
+      <input type="text" id="birthday">
+      <p>Skriv en alder (eks: 18 år)</p>
+      <input type="text" id="alder">
+      <p>Skriv et kørekortnr - Skal være 8 cifre (eks: 36647288)</p>
+      <input type="text" id="kortNr">
+
+      <button onclick="uploadAndCache()">Gem</button>
+    </main>
+    <script src="js/uploadImage.js"></script>
+  </body>
+</html>

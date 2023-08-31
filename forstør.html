@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://db.onlinewebfonts.com/c/6f8f430f14e9f1fba82ee2822ed36e4b?family=Felbridge+W04+Bold" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#021430">
+    <title>ID</title>
+  </head>
+  <body>
+    <main>
+      <img src="images/forstør-top.jpg" id="forstør-topBar" class="noDrag">
+      <div id="imageKontrolContainer">
+        <div id="forstør-idBillede" style="background-image: url();"></div>
+        <div id="gyldigtIDkBar">
+          <p id="gyldigtText">&nbsp;&nbsp;&nbsp;&nbsp;KØREKORT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GYLDIGT I DK&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KØREKORT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GYLDIGT I DK&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;KØREKORT</p>
+        </div>
+      </div>
+      <p class="textNavnTitle">NAVN</p>
+      <p id="textNavn" class="textNavn"></p>
+      <p class="textAlder2Title">ALDER</p>
+      <p id="textAlder2" class="textAlder2"></p>
+      <canvas id="watermark-canvas-forstør"></canvas>
+    </main>
+    <script>
+
+      function load() {
+        let image = localStorage.getItem("idBillede");
+        if(image != null) {
+          document.getElementById("forstør-idBillede").style.backgroundImage = `url(${image})`;
+        }
+
+        let name = localStorage.getItem("name");
+        if(name != null) {
+          document.getElementById("textNavn").textContent  = name;
+        }
+
+
+        let alderTekst = localStorage.getItem("alder");
+        if(alderTekst != null) {
+          document.getElementById("textAlder2").textContent  = alderTekst;
+        }
+      }
+
+      load()
+
+
+      document.getElementById("forstør-topBar").addEventListener("click", (e) => { 
+        if(e.x > 20 && e.x < 120) {
+          if(!window.location.href.endsWith("index.html")) {
+            window.location.href = "index.html"
+          }
+        }
+      });
+
+      function setupWatermark() {
+      const canvas = document.getElementById('watermark-canvas-forstør');
+      const ctx = canvas.getContext('2d');
+
+
+        // Define the start and end colors as arrays of RGBA values
+      const startColor = [255, 170, 195, 255]; // RGBA values for the start color
+      const currentColor = [0, 160, 207, 255];
+      const endColor = [195, 177, 229, 255];    // RGBA values for the end color
+
+      // Duration of the fading transition in milliseconds
+      const transitionDuration = 10000; // 1 second
+
+      // Number of steps or frames to achieve the transition
+      const numSteps = 60; // Adjust this value for smoother or faster transitions
+
+      // Calculate the step size for each channel (R, G, B, A)
+      const stepSize = [];
+      for (let i = 0; i < 4; i++) {
+          stepSize[i] = (endColor[i] - startColor[i]) / numSteps;
+      }
+
+      // Function to perform the color fading transition
+      function fadeColors(currentStep) {
+          // Calculate the current color values using linear interpolation
+          for (let i = 0; i < 4; i++) {
+              currentColor[i] = Math.round(startColor[i] + stepSize[i] * currentStep);
+          }
+      }
+
+      function startColorTransition() {
+        let currentStep = 0;
+        let direction = 1; // 1 for forward, -1 for backward
+        const timeInterval = transitionDuration / numSteps;
+
+        const intervalId = setInterval(() => {
+            fadeColors(currentStep, direction);
+
+            currentStep += direction;
+            if (currentStep >= numSteps || currentStep <= 0) {
+                direction *= -1; // Change direction when reaching endpoints
+            }
+
+            if (currentStep <= 0) {
+                clearInterval(intervalId);
+            }
+        }, timeInterval);
+      }
+      // Start the fading transition 
+      startColorTransition();
+
+      const image = new Image();
+      image.src = 'images/Qw.png';
+
+      const gradientColors = [
+        startColor,
+        currentColor,
+        endColor
+        // You can add more colors to the gradient
+      ];
+
+      let gradientAngleDegrees = 0;
+      const gradientStep = 1 / (gradientColors.length - 1);
+
+      image.onload = function () {
+        canvas.width = image.width;
+        canvas.height = image.height;
+
+        function drawRotatedGradient() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(image, 0, 0);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
+
+            if (r === 0 && g === 0 && b === 0 && a !== 0) {
+              const pixelPosition = (i / data.length); // Normalized pixel position
+
+              // Calculate rotated gradient position
+              const rotatedPixelPositionX = (pixelPosition - 0.5) * Math.cos(gradientAngleDegrees) + 0.5;
+              const rotatedPixelPositionY = (pixelPosition - 0.5) * Math.sin(gradientAngleDegrees) + 0.5;
+
+              const rotatedGradientPosition = rotatedPixelPositionX / gradientStep;
+
+              const colorIndex1 = Math.floor(rotatedGradientPosition);
+              const colorIndex2 = Math.min(colorIndex1 + 1, gradientColors.length - 1);
+              const alpha = rotatedGradientPosition % 1;
+
+              const color1 = gradientColors[colorIndex1];
+              const color2 = gradientColors[colorIndex2];
+
+              // Interpolate colors
+              const interpolatedColor = color1.map((channel, idx) => {
+                return Math.round(channel * (1 - alpha) + color2[idx] * alpha);
+              });
+
+              data[i] = interpolatedColor[0];
+              data[i + 1] = interpolatedColor[1];
+              data[i + 2] = interpolatedColor[2];
+            }
+          }
+
+          ctx.putImageData(imageData, 0, 0);
+        }
+
+        function animate() {
+          gradientAngleDegrees += 0.01; // Increment the rotation angle
+          drawRotatedGradient();
+          requestAnimationFrame(animate);
+        }
+      
+        animate();
+      }
+    }
+    
+    setupWatermark()
+   </script>
+  </body>
+</html>
